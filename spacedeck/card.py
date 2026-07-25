@@ -96,15 +96,33 @@ def due_date(c):
     return datetime.date.fromisoformat(raw)
 
 
+_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
+
+
+def sections(c):
+    """Body split into {heading: text}, with HTML comments stripped.
+
+    Comments carry the template's guidance, so a freshly minted card is full of them
+    while containing nothing the user wrote. Stripping them is what lets `is_stub`
+    tell a skeleton apart from an encoding.
+    """
+    body = _COMMENT_RE.sub("", c.body)
+    out, heading = {}, None
+    for line in body.splitlines():
+        if line.startswith("## "):
+            heading = line[3:].strip()
+            out[heading] = []
+        elif heading is not None:
+            out[heading].append(line)
+    return {k: "\n".join(v).strip() for k, v in out.items()}
+
+
 def is_stub(c):
-    """True when the user hasn't written the encoding yet."""
-    body = c.body
-    for heading in ("## Prompt", "## Answer"):
-        start = body.find(heading)
-        if start == -1:
-            return True
-        rest = body[start + len(heading):]
-        section = rest.split("##", 1)[0]
-        if not section.strip():
-            return True
-    return False
+    """True when the user hasn't written the encoding yet.
+
+    A card needs at least two non-empty sections to be worth testing on: something
+    to ask and something to check against. Which headings those are is up to the
+    repo's template, so this counts rather than naming them.
+    """
+    written = [text for text in sections(c).values() if text]
+    return len(written) < 2
