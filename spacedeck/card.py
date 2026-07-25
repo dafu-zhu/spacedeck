@@ -27,6 +27,18 @@ class Card:
     body: str
 
 
+def looks_like_card(path):
+    """True when the file opens with a frontmatter delimiter.
+
+    Lets a cards directory hold a README, an index, or the generated queue file
+    without those being mistaken for cards. A file that opens with `---` but is
+    otherwise broken is still a card, and `read` will report it rather than let it
+    disappear.
+    """
+    with pathlib.Path(path).open(encoding="utf-8") as fh:
+        return fh.readline().rstrip("\r\n") == "---"
+
+
 def read(path):
     path = pathlib.Path(path)
     text = path.read_text(encoding="utf-8")
