@@ -1,0 +1,17 @@
+{
+  "name": "spacedeck",
+  "description": "Spaced review over your own course notes. Two rungs: recall it, or derive it on paper.",
+  "version": "0.1.0",
+  "author": {
+    "name": "dafu-zhu"
+  },
+  "homepage": "https://github.com/dafu-zhu/spacedeck",
+  "repository": "https://github.com/dafu-zhu/spacedeck",
+  "license": "MIT",
+  "keywords": [
+    "spaced-repetition",
+    "study",
+    "flashcards",
+    "learning"
+  ]
+}

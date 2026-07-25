@@ -1,0 +1,27 @@
+# spacedeck configuration. Lives in the repo holding your notes.
+
+[spacedeck]
+# Where cards live, relative to this file.
+cards_dir = "reviews"
+
+# The generated due-view. Never hand-edit it; `spacedeck requeue` rewrites it whole.
+queue_file = "REVIEW.md"
+
+# Days between reviews, in order. A card's `interval` field is its position here.
+# A card graded good/easy at the last entry retires.
+ladder = [1, 3, 7, 16, 35]
+
+# Most cards to serve in a day. Overflow defers quietly rather than piling up.
+max_cards_per_day = 8
+
+# Rough daily budget, for schedulers reading `spacedeck due --json`.
+daily_minutes = 15
+
+# Port for the phone photo-upload page used by `derive` cards.
+upload_port = 8765
+
+# Branch that card state is published to, so a scheduler or another machine sees it.
+state_branch = "main"
+
+# Priority labels, highest first. Breaks ties when several cards fall due together.
+tiers = ["P0", "P1", "P2"]

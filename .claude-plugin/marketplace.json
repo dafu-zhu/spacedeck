@@ -1,0 +1,30 @@
+{
+  "name": "spacedeck",
+  "owner": {
+    "name": "dafu-zhu",
+    "url": "https://github.com/dafu-zhu"
+  },
+  "metadata": {
+    "description": "Spaced review over your own course notes.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "spacedeck",
+      "source": "./",
+      "description": "Spaced review over your own course notes. Two rungs: recall it, or derive it on paper. Cards are plain Markdown in your repo.",
+      "version": "0.1.0",
+      "author": {
+        "name": "dafu-zhu"
+      },
+      "homepage": "https://github.com/dafu-zhu/spacedeck",
+      "license": "MIT",
+      "keywords": [
+        "spaced-repetition",
+        "study",
+        "flashcards",
+        "learning"
+      ]
+    }
+  ]
+}
