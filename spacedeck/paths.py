@@ -19,9 +19,16 @@ def root():
 
 
 def slug(repo_root):
-    """A stable per-repo directory name: readable prefix, collision-proof suffix."""
+    """A stable per-repo directory name: readable prefix, collision-proof suffix.
+
+    The path is normalised before hashing. Without that, `D:\\Repo` and `d:\\repo`
+    hash differently while being the same directory on Windows, so the same repo
+    would end up with two inboxes and two upload tokens depending on how it was
+    spelled.
+    """
     repo_root = pathlib.Path(repo_root)
-    digest = hashlib.sha256(str(repo_root.resolve()).encode("utf-8")).hexdigest()[:8]
+    canonical = os.path.normcase(str(repo_root.resolve()))
+    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:8]
     return f"{repo_root.name}-{digest}"
 
 

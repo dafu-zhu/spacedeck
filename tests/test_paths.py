@@ -35,6 +35,29 @@ def test_slug_is_stable_across_calls(tmp_path):
     assert paths.home(repo) == paths.home(repo)
 
 
+def test_slug_ignores_path_case_where_the_filesystem_does(tmp_path):
+    """Same directory spelled two ways must not get two inboxes and two tokens."""
+    repo = tmp_path / "Notes"
+    repo.mkdir()
+    shouted = paths.slug(str(repo).upper())
+    normal = paths.slug(repo)
+    if paths.os.path.normcase("A") == paths.os.path.normcase("a"):
+        assert shouted.split("-")[-1] == normal.split("-")[-1]
+
+
+def test_slug_survives_a_trailing_separator(tmp_path):
+    repo = tmp_path / "notes"
+    repo.mkdir()
+    assert paths.slug(str(repo) + "/") == paths.slug(repo)
+
+
+def test_slug_survives_a_relative_path(tmp_path, monkeypatch):
+    repo = tmp_path / "notes"
+    repo.mkdir()
+    monkeypatch.chdir(tmp_path)
+    assert paths.slug("notes") == paths.slug(repo)
+
+
 def test_artifacts_sit_inside_the_repo_home(tmp_path):
     repo = tmp_path / "notes"
     home = paths.home(repo)
