@@ -7,9 +7,12 @@ skill, because grading is a conversation and a CLI is a poor place to have one.
 import argparse
 import datetime
 import json
+import os
 import pathlib
 import shutil
+import subprocess
 import sys
+import time
 import urllib.request
 
 from . import card, config, ladder, mint, paths, queue, render, statesync, upload
@@ -84,20 +87,76 @@ def cmd_requeue(args):
     return 0
 
 
+SERVE_LABELS = [
+    "address (always works, changes on a new lease)",
+    "mDNS name (survives a new lease; most phones resolve it)",
+    "hostname (NetBIOS; usually only other desktops)",
+]
+
+
+def _print_urls(cfg, port):
+    for url, label in zip(upload.urls(cfg.root, port), SERVE_LABELS):
+        print(f"  {url}\n      {label}")
+
+
+def detached_command(port):
+    """The argv for a server that outlives whoever started it."""
+    return [sys.executable, "-m", "spacedeck.cli", "serve", "--port", str(port)]
+
+
+def _spawn_detached(cfg, port):
+    """Start the server so it survives the calling shell or session exiting.
+
+    A session-owned child dies with the session, which is useless for a server
+    you're meant to forget about.
+    """
+    env = dict(os.environ)
+    package_parent = str(pathlib.Path(__file__).resolve().parent.parent)
+    env["PYTHONPATH"] = os.pathsep.join(
+        p for p in (package_parent, env.get("PYTHONPATH", "")) if p
+    )
+    kwargs = {
+        "cwd": str(cfg.root),
+        "env": env,
+        "stdin": subprocess.DEVNULL,
+        "stdout": subprocess.DEVNULL,
+        "stderr": subprocess.DEVNULL,
+    }
+    if os.name == "nt":
+        kwargs["creationflags"] = (
+            subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+        )
+    else:
+        kwargs["start_new_session"] = True
+    subprocess.Popen(detached_command(port), **kwargs)
+
+    for _ in range(50):
+        if upload.is_running(port):
+            return True
+        time.sleep(0.1)
+    return False
+
+
 def cmd_serve(args):
     cfg = _resolve()
     port = args.port or cfg.upload_port
+
     if upload.is_running(port):
         print(f"already serving on {port}")
-        for url in upload.urls(cfg.root, port):
-            print("  " + url)
+        _print_urls(cfg, port)
         return 0
-    labels = ["address (always works, changes on a new lease)",
-              "mDNS name (survives a new lease; most phones resolve it)",
-              "hostname (NetBIOS; usually only other desktops)"]
+
+    if args.detach:
+        if not _spawn_detached(cfg, port):
+            sys.exit(f"failed to start a server on port {port}")
+        print(f"serving on {port} (detached)")
+        _print_urls(cfg, port)
+        print(f"inbox: {paths.inbox(cfg.root)}")
+        print(f"(stops itself after {upload.IDLE_TIMEOUT // 60} minutes idle)")
+        return 0
+
     print("bookmark the first that loads on your phone:")
-    for url, label in zip(upload.urls(cfg.root, port), labels):
-        print(f"  {url}\n      {label}")
+    _print_urls(cfg, port)
     print(f"inbox: {paths.inbox(cfg.root)}")
     print(f"(stops itself after {upload.IDLE_TIMEOUT // 60} minutes idle)")
     upload.serve(cfg.root, port)
@@ -160,6 +219,8 @@ def build_parser():
 
     srv = sub.add_parser("serve", help="run the photo upload endpoint")
     srv.add_argument("--port", type=int)
+    srv.add_argument("--detach", action="store_true",
+                     help="start in the background and return immediately")
     srv.set_defaults(func=cmd_serve)
 
     setup = sub.add_parser("setup", help="vendor the math bundle for offline rendering")

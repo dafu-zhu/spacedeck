@@ -77,10 +77,14 @@ Record the current time — a photo picked up later must be newer than this mome
 are comparing meaning, not syntax. `E_t[S_T] = exp(...)` and proper LaTeX are the same
 answer.
 
-**`derive` cards:** the user works on paper. Start the upload endpoint if
-`upload.is_running(port)` is False, print the bookmark URL the first time, and wait for
-them to type `done`. Then `upload.newest_since(cfg.root, served_at)` and read the image.
-If nothing newer is there, ask — never assume they meant to skip it.
+**`derive` cards:** the user works on paper. Run `spacedeck serve --detach` — it returns
+immediately, is a no-op when a server is already up, and the process outlives this
+session so the user never starts one by hand. Show the bookmark URLs only on the first
+`derive` card of a session; after that they are noise.
+
+Then wait for the user to type `done`, call
+`upload.newest_since(cfg.root, served_at)`, and read the image. If nothing newer is
+there, ask — never assume they meant to skip it.
 
 ### 3. Reveal and grade
 
