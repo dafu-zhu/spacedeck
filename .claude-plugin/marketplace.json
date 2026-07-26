@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Spaced review over your own course notes.",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "plugins": [
     {
       "name": "spacedeck",
       "source": "./",
       "description": "Spaced review over your own course notes. Two rungs: recall it, or derive it on paper. Cards are plain Markdown in your repo.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "dafu-zhu"
       },
