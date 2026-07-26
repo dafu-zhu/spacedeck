@@ -99,11 +99,15 @@ and the image lands on your machine with no cloud account anywhere in the path.
 
 ## Where your work goes
 
-Every card owns a folder. `spacedeck add` creates it and records it in the card:
+Every card owns a folder, named after the card. `spacedeck add` creates it and records it
+in the card, so `ito-isometry.md` gets:
 
 ```yaml
-work: probability/ito-isometry
+work: ito-isometry
 ```
+
+Two subjects can hold a card of the same name, and they must not share a folder — the
+second one registered becomes `ito-isometry-2`. The card records whichever name it got.
 
 The photo waits in a shared inbox while you're being tested — it doesn't belong to a card
 until it has been checked against one — and filing happens at grading. It moves into that

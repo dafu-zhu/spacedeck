@@ -26,20 +26,41 @@ def slugify(topic):
     return re.sub(r"[^a-z0-9]+", "-", ascii_only.lower()).strip("-")
 
 
-def work_rel(subject, topic):
-    """A card's photo folder, as a POSIX path relative to the local work root.
+def existing_work_names(cards_dir):
+    """Every folder name already claimed by a card in this deck."""
+    names = set()
+    for path in pathlib.Path(cards_dir).rglob("*.md"):
+        try:
+            if card.looks_like_card(path):
+                names.add(card.read(path).fields.get("work", ""))
+        except (OSError, ValueError):
+            continue
+    names.discard("")
+    return names
 
-    Deliberately relative and slash-separated: this string is written into the
-    card and travels with it, so it must not carry a drive letter, a home
-    directory, a repo slug, or a backslash. Each machine resolves it against its
-    own `paths.work`.
+
+def work_rel(topic, taken=()):
+    """A card's own folder: the card's name, flat under the local work root.
+
+    Relative and separator-free by design. This string is written into the card
+    and travels with it, so it must never carry a drive letter, a home directory,
+    or a repo slug; each machine resolves it against its own `paths.work`.
+
+    Two subjects can hold a card of the same name and they must not share a
+    folder, so the second one registered takes a numeric suffix. The card records
+    whichever name it got, and nothing recomputes it afterwards.
     """
-    return f"{slugify(subject)}/{slugify(topic)}"
+    base = slugify(topic)
+    name, n = base, 2
+    while name in taken:
+        name = f"{base}-{n}"
+        n += 1
+    return name
 
 
 def work_rel_of(c):
-    """The `work:` field, or where it would point for a card minted before it existed."""
-    return c.fields.get("work") or work_rel(c.fields["subject"], c.fields["topic"])
+    """The `work:` field, or the name it would have had for a card minted before it."""
+    return c.fields.get("work") or slugify(c.fields["topic"])
 
 
 def template_path(cards_dir):
@@ -70,7 +91,7 @@ def create(cards_dir, subject, topic, today, tier="P0", source=""):
             "interval": "1",
             "next_due": (today + datetime.timedelta(days=1)).isoformat(),
             "status": "active",
-            "work": work_rel(subject, topic),
+            "work": work_rel(topic, existing_work_names(cards_dir)),
             "source": source,
         },
         history=[{"date": today.isoformat(), "grade": "seed"}],

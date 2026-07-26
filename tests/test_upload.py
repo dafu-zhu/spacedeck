@@ -32,52 +32,51 @@ def _shot(repo, name="raw.jpg"):
 # --- filing a graded shot ---------------------------------------------------
 
 def test_file_shot_moves_the_photo_into_the_cards_folder(repo):
-    filed = upload.file_shot(repo, "probability/ito-isometry", _shot(repo), TODAY)
-    assert filed == paths.card_work(repo, "probability/ito-isometry") / "2026-07-25.jpg"
+    filed = upload.file_shot(repo, "ito-isometry", _shot(repo), TODAY)
+    assert filed == paths.card_work(repo, "ito-isometry") / "2026-07-25.jpg"
     assert filed.read_bytes() == b"jpeg-ish"
 
 
 def test_file_shot_empties_the_inbox(repo):
     shot = _shot(repo)
-    upload.file_shot(repo, "probability/ito-isometry", shot, TODAY)
+    upload.file_shot(repo, "ito-isometry", shot, TODAY)
     assert not shot.exists()
     assert list(paths.inbox(repo).glob("*.jpg")) == []
 
 
 def test_a_second_attempt_the_same_day_is_numbered_not_overwritten(repo):
-    first = upload.file_shot(repo, "probability/ito", _shot(repo, "a.jpg"), TODAY)
-    second = upload.file_shot(repo, "probability/ito", _shot(repo, "b.jpg"), TODAY)
+    first = upload.file_shot(repo, "ito", _shot(repo, "a.jpg"), TODAY)
+    second = upload.file_shot(repo, "ito", _shot(repo, "b.jpg"), TODAY)
     assert first.name == "2026-07-25.jpg"
     assert second.name == "2026-07-25-2.jpg"
     assert first.exists() and second.exists()
 
 
 def test_shots_for_different_cards_never_mix(repo):
-    upload.file_shot(repo, "probability/ito", _shot(repo, "a.jpg"), TODAY)
-    upload.file_shot(repo, "analysis/dominated", _shot(repo, "b.jpg"), TODAY)
-    assert len(upload.filed_shots(repo, "probability/ito")) == 1
-    assert len(upload.filed_shots(repo, "analysis/dominated")) == 1
+    upload.file_shot(repo, "ito", _shot(repo, "a.jpg"), TODAY)
+    upload.file_shot(repo, "dominated", _shot(repo, "b.jpg"), TODAY)
+    assert len(upload.filed_shots(repo, "ito")) == 1
+    assert len(upload.filed_shots(repo, "dominated")) == 1
 
 
 def test_the_work_folder_resolves_under_the_runtime_root_not_the_repo(repo):
-    filed = upload.file_shot(repo, "probability/ito", _shot(repo), TODAY)
+    filed = upload.file_shot(repo, "ito", _shot(repo), TODAY)
     assert paths.root() in filed.parents
     assert repo not in filed.parents
 
 
-def test_a_posix_work_field_resolves_on_this_platform(repo):
-    """Cards store `a/b`; it must resolve wherever the card is opened."""
-    folder = paths.card_work(repo, "probability/ito-isometry")
+def test_the_work_folder_is_one_flat_directory_per_card(repo):
+    folder = paths.card_work(repo, "ito-isometry")
     assert folder.is_dir()
-    assert folder.parent.name == "probability"
     assert folder.name == "ito-isometry"
+    assert folder.parent == paths.work(repo)
 
 
 def test_filed_shots_are_oldest_first(repo):
-    upload.file_shot(repo, "probability/ito", _shot(repo, "a.jpg"), TODAY)
-    upload.file_shot(repo, "probability/ito", _shot(repo, "b.jpg"), TODAY)
-    upload.file_shot(repo, "probability/ito", _shot(repo, "c.jpg"), TODAY)
-    names = [p.name for p in upload.filed_shots(repo, "probability/ito")]
+    upload.file_shot(repo, "ito", _shot(repo, "a.jpg"), TODAY)
+    upload.file_shot(repo, "ito", _shot(repo, "b.jpg"), TODAY)
+    upload.file_shot(repo, "ito", _shot(repo, "c.jpg"), TODAY)
+    names = [p.name for p in upload.filed_shots(repo, "ito")]
     assert names == ["2026-07-25.jpg", "2026-07-25-2.jpg", "2026-07-25-3.jpg"]
 
 
