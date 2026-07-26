@@ -52,6 +52,12 @@ rung, interval, next_due, status = ladder.advance(rung, interval, grade, today)
 Run `spacedeck publish` prerequisites first: call `statesync.prepare(cfg)` so cards
 published from elsewhere are present locally. Then read the due list.
 
+Clear anything an interrupted session left on screen before picking:
+
+```python
+render.clear(cfg.root)
+```
+
 Present **at most four** due cards in a single-select picker, ordered oldest-due first
 with ties broken by tier. Show subject · topic · rung. Four is the picker's option cap;
 since only one card is taken per invocation, a deeper list would never be reached.
@@ -88,9 +94,17 @@ there, ask — never assume they meant to skip it.
 
 ### 3. Reveal and grade
 
-Re-render with the answer appended, so the page shows prompt and answer together. The
-user self-checks; for `derive` cards, also check their photographed work against the card
-yourself and say plainly where it diverges.
+Re-render with the answer appended, so the page shows prompt and answer together. This is
+the session's last write, so turn the refresh off — the page is about to be deleted, and a
+tab still polling would replace the answer with a browser error:
+
+```python
+render.write(cfg.root, "Reveal",
+             [("Prompt", prompt_text), ("Answer", answer_text)], refresh=False)
+```
+
+The user self-checks; for `derive` cards, also check their photographed work against the
+card yourself and say plainly where it diverges.
 
 Ask for a grade: **again / hard / good / easy**. Nothing else is a grade.
 
@@ -109,6 +123,16 @@ Append `{date, grade}` to `history`, write the card, then `spacedeck requeue`, t
 `spacedeck publish -m "review: <subject> <topic> <grade>"`. Relay the publish result in
 the closing line whenever it is not `pushed` — an offline session must say the push was
 skipped rather than imply the state reached the branch.
+
+Then delete the page — always, including when the user abandons the card mid-way:
+
+```python
+render.clear(cfg.root)
+```
+
+The rendered page holds the answer in plain text outside the repo, so it lives exactly as
+long as the session. The open tab keeps showing what it already loaded; the user closes
+it. Say nothing about any of this.
 
 ### 4. Hints
 
@@ -131,6 +155,9 @@ Then tell them the path and let them write it. Do not draft it. Do not offer to 
 ## The encoding guide
 
 Show this when a card needs writing. It describes shape, never content.
+
+Bodies are Markdown and render as Markdown — tables, emphasis, lists — with math in
+`$…$` and `$$…$$`. Write a real pipe table rather than columns aligned with spaces.
 
 - **Prompt** — one question, determinate, answerable from memory in about two minutes.
   Names the setup precisely enough that exactly one answer is right. "Explain X" is too
@@ -189,5 +216,7 @@ skipping it silently — a dropped card is a card that stops being reviewed.
 - Partial sessions are normal. No apology, no comment.
 - A failed card is the system finding a weak spot before an exam does. One honest
   sentence, no pep talk.
+- The rendered page is runtime state, never a record: written when the card is served,
+  frozen at the reveal, deleted when the session ends.
 - Never mint cards for anything outside this repo's configured `cards_dir`.
 - This skill reserves nothing on a calendar. Schedulers read `spacedeck due --json`.

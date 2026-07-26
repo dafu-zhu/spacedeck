@@ -84,9 +84,14 @@ You get a picker of what's due, choose one card, and that's the session. Type `/
 again for the next one. Nothing tracks "how many you've done today"; a graded card simply
 leaves the due set, and when the set is empty you're told so in one line.
 
-Math renders as typeset math in a browser tab that updates itself — the prompt first,
-then the answer once you've committed to a response. MathJax is vendored, so sessions
-work offline.
+Cards render in a browser tab that updates itself — the prompt first, then the answer once
+you've committed to a response. Markdown becomes Markdown, so a payoff table is a table
+and not a row of pipes, and math is typeset by MathJax, which is vendored so sessions work
+offline. The two never collide: math spans are lifted out before the Markdown pass, so a
+`|` inside `\left|` doesn't open a table cell and an `_` inside `S_t` doesn't open italics.
+
+The rendered page is temporary. It is deleted when the session ends, and again when the
+next one starts, so the answer never sits on disk outside your repo between reviews.
 
 For `derive` cards you work on paper and photograph it. `spacedeck serve` runs a small
 upload page on your own network: bookmark it on your phone's home screen, tap, shoot,
