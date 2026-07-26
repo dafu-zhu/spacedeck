@@ -43,6 +43,25 @@ def inbox(repo_root):
     return home(repo_root) / "inbox"
 
 
+def work(repo_root):
+    """Root of the per-card archives of photographed work."""
+    path = home(repo_root) / "work"
+    path.mkdir(exist_ok=True)
+    return path
+
+
+def card_work(repo_root, rel):
+    """Where one card's photographed work is filed.
+
+    `rel` is the card's own `work:` field — a POSIX path relative to this root,
+    so the same card resolves on any machine and any OS. Nothing about the local
+    runtime layout is ever written into a card.
+    """
+    path = work(repo_root).joinpath(*pathlib.PurePosixPath(rel).parts)
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def card_html(repo_root):
     return home(repo_root) / "card.html"
 

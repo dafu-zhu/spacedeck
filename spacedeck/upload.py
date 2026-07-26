@@ -10,7 +10,10 @@ Python 3.13 and a raw body needs no parsing at all.
 
 import datetime
 import http.server
+import pathlib
+import re
 import secrets
+import shutil
 import socket
 import struct
 import threading
@@ -109,6 +112,49 @@ def newest_since(repo_root, when):
         if p.stat().st_mtime > when.timestamp()
     ]
     return max(shots, key=lambda p: p.stat().st_mtime) if shots else None
+
+
+def file_shot(repo_root, work_rel, image, today):
+    """Move a graded shot out of the inbox into its card's folder, named by date.
+
+    The inbox is shared by every card, so a photo means nothing until it is matched
+    to the card it was taken for — which only happens at grading. Filing it there
+    keeps the inbox a queue rather than an archive.
+
+    A second attempt on the same day is numbered rather than overwritten: two goes
+    at one derivation are two pieces of evidence, and the later one is not
+    automatically the one worth keeping.
+    """
+    image = pathlib.Path(image)
+    folder = paths.card_work(repo_root, work_rel)
+    suffix = image.suffix or ".jpg"
+    target = folder / f"{today.isoformat()}{suffix}"
+    n = 2
+    while target.exists():
+        target = folder / f"{today.isoformat()}-{n}{suffix}"
+        n += 1
+    shutil.move(str(image), str(target))
+    return target
+
+
+_SHOT_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:-(\d+))?$")
+
+
+def _shot_order(path):
+    """Sort key for a filed shot.
+
+    Not plain name order: `-` precedes `.`, so `2026-07-25-2.jpg` would sort ahead
+    of `2026-07-25.jpg`. Not mtime either, which ties when several shots are filed
+    in the same instant and is lost by any copy.
+    """
+    match = _SHOT_RE.match(path.stem)
+    return (match.group(1), int(match.group(2) or 1)) if match else (path.stem, 0)
+
+
+def filed_shots(repo_root, work_rel):
+    """Everything filed for one card, oldest first."""
+    folder = paths.card_work(repo_root, work_rel)
+    return sorted((p for p in folder.iterdir() if p.is_file()), key=_shot_order)
 
 
 # --- EXIF orientation -----------------------------------------------------------
