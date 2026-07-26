@@ -11,8 +11,10 @@ import tomllib
 CONFIG_NAME = "spacedeck.toml"
 
 DEFAULTS = {
-    "cards_dir": "reviews",
-    "queue_file": "REVIEW.md",
+    # Namespaced on purpose. `reviews/` and `REVIEW.md` are names a repo may already
+    # be using for something else entirely, and init must not adopt or overwrite one.
+    "cards_dir": "spacedeck",
+    "queue_file": "spacedeck/QUEUE.md",
     "ladder": [1, 3, 7, 16, 35],
     "max_cards_per_day": 8,
     "daily_minutes": 15,

@@ -1,11 +1,12 @@
 # spacedeck configuration. Lives in the repo holding your notes.
 
 [spacedeck]
-# Where cards live, relative to this file.
-cards_dir = "reviews"
+# Where cards live, relative to this file. Point it anywhere; the default is
+# namespaced so `spacedeck init` never lands on a directory you already use.
+cards_dir = "spacedeck"
 
 # The generated due-view. Never hand-edit it; `spacedeck requeue` rewrites it whole.
-queue_file = "REVIEW.md"
+queue_file = "spacedeck/QUEUE.md"
 
 # Days between reviews, in order. A card's `interval` field is its position here.
 # A card graded good/easy at the last entry retires.

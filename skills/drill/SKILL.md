@@ -229,6 +229,10 @@ where photographed attempts get filed.
 Run `spacedeck init`, then report what was created and point at `_template.md` as the
 place to reshape cards for this subject.
 
+If it refuses because a path is already taken, relay exactly what is in the way and stop.
+Do not delete it, rename it, or re-run with a different `cards_dir` to get past it — the
+user is the only one who knows whether that directory matters.
+
 ## Mode: requeue
 
 Run `spacedeck requeue`. If a card fails to parse, report which one and why rather than
