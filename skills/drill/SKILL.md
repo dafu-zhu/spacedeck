@@ -226,8 +226,12 @@ where photographed attempts get filed.
 
 ## Mode: init
 
-Run `spacedeck init`, then report what was created and point at `_template.md` as the
-place to reshape cards for this subject.
+Run `spacedeck init`, then `spacedeck setup` to vendor the math bundle so this machine
+renders typeset math offline. Then report what was created and point at `_template.md` as
+the place to reshape cards for this subject.
+
+`setup` needs the network. If it fails, say so in one line and carry on: cards still
+render, with raw LaTeX in place of typeset math, and it can be re-run any time.
 
 If it refuses because a path is already taken, relay exactly what is in the way and stop.
 Do not delete it, rename it, or re-run with a different `cards_dir` to get past it — the

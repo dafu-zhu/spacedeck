@@ -45,11 +45,10 @@ for something else, and it will not overwrite a file you wrote. Point `cards_dir
 
 ## Commands
 
-spacedeck has two surfaces. The `/drill` skill runs review sessions inside Claude Code,
-because grading is a conversation. The `spacedeck` CLI covers the mechanical parts and
-runs without a model, so cron jobs and planners can call it directly.
+`/drill` is the interface. Everything you do day to day goes through it, and the four
+commands below are the whole surface.
 
-### The /drill skill
+### /drill
 
 | command | what it does |
 |---|---|
@@ -71,7 +70,15 @@ The subject becomes the folder, the topic becomes the filename. So the first lin
 `/drill` on its own starts a session. You get a picker of up to four due cards, you choose
 one, and that is the session. Run it again for the next card.
 
-### The spacedeck CLI
+### The CLI underneath
+
+You do not need this section to use spacedeck. `/drill` shells out to a `spacedeck`
+command for every mechanical step, so the table below is mostly here to tell you what the
+skill just did on your behalf.
+
+The exception is scheduling. `spacedeck due --json` is meant to be called by something
+else, and a cron job or a daily planner can use it to size a review block without a model
+in the loop. [docs/integrations.md](docs/integrations.md) covers that.
 
 | command | what it does |
 |---|---|
@@ -88,9 +95,10 @@ defaults to `recall`; `--tier`, which defaults to `P0` and breaks ties when seve
 fall due together; and `--source`, a free-text reference back to the notes the card came
 from.
 
-The skill runs `publish` for you after every grade and starts `serve` when a `derive` card
-needs a photo. Run `setup` yourself once per machine. Until you do, cards still render,
-but the math shows as raw LaTeX rather than typeset.
+`/drill init` runs `init` and then `setup`, so a machine has its math bundle before the
+first card. From there the skill calls the rest at the right moments: `publish` after
+every grade, `serve` when a `derive` card needs a photo, `requeue` whenever a card
+changes.
 
 ## A first card
 
