@@ -53,7 +53,7 @@ def load(root):
     path = root / CONFIG_NAME
     if not path.is_file():
         raise FileNotFoundError(
-            f"no {CONFIG_NAME} in {root} — run `/review init` to create one"
+            f"no {CONFIG_NAME} in {root} — run `/drill init` to create one"
         )
 
     with path.open("rb") as fh:

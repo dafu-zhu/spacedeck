@@ -80,9 +80,9 @@ low-energy slot — never the freshest hours, which belong to deep work. Label i
 appointments and an imminent deadline.
 
 You reserve the slot and nothing more. Card state — the rung, the interval, the next due
-date, the grade history — belongs to the `/review` skill, which is the only thing that
+date, the grade history — belongs to the `/drill` skill, which is the only thing that
 runs an actual recall test. If the user reports a grade in conversation, note it and tell
-them to run `/review`. Do not edit a card.
+them to run `/drill`. Do not edit a card.
 ```
 
 That last paragraph matters more than it looks. A scheduler that also advances cards will
