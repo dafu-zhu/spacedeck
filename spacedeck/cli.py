@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import time
+import tomllib
 import urllib.request
 
 from . import card, config, ladder, mint, paths, queue, render, statesync, upload
@@ -32,11 +33,29 @@ def _resolve(start=None):
 
 # --- commands -------------------------------------------------------------------
 
+def _planned_paths(root):
+    """What init would create, read from the template rather than assumed."""
+    with (TEMPLATES / "spacedeck.toml").open("rb") as fh:
+        planned = {**config.DEFAULTS, **tomllib.load(fh).get("spacedeck", {})}
+    return root / planned["cards_dir"], root / planned["queue_file"]
+
+
 def cmd_init(args):
     root = pathlib.Path(args.path or pathlib.Path.cwd()).resolve()
     target = root / config.CONFIG_NAME
     if target.exists():
         sys.exit(f"{target} already exists — edit it rather than re-initialising.")
+
+    # Check before writing anything. Adopting a directory the repo already uses, or
+    # overwriting a file already there, is worse than refusing to start.
+    taken = [p for p in _planned_paths(root) if p.exists()]
+    if taken:
+        listing = "\n".join(f"  {p.relative_to(root).as_posix()}" for p in taken)
+        sys.exit(
+            f"these already exist and spacedeck will not take them over:\n{listing}\n\n"
+            f"Nothing was written. Either move them aside, or write {config.CONFIG_NAME} "
+            "yourself with a cards_dir and queue_file pointing somewhere free."
+        )
 
     shutil.copy2(TEMPLATES / "spacedeck.toml", target)
     cfg = config.load(root)
