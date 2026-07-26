@@ -1,15 +1,15 @@
 ---
-name: review
-description: Run a spaced-review session over the cards in this repo — serve one due card, test recall, grade it, and advance the schedule. Use when the user types /review, /review add, /review init, or /review requeue, or asks to review or drill their course material.
+name: drill
+description: Run a spaced-review session over the cards in this repo — serve one due card, test recall, grade it, and advance the schedule. Use when the user types /drill, /drill add, /drill init, or /drill requeue, or asks to review or drill their course material.
 ---
 
-# /review — one card, tested properly
+# /drill — one card, tested properly
 
 Runs the recall test that `spacedeck` schedules. Cards are Markdown files under the
 configured `cards_dir`; the engine is the `spacedeck` package shipped with this plugin.
 
 **Source of truth is card frontmatter.** The queue file is generated and must never be
-hand-edited. If they disagree, the cards win — run `/review requeue`.
+hand-edited. If they disagree, the cards win — run `/drill requeue`.
 
 **Never write card body content.** Not `## Prompt`, not `## Answer`, not `## Notes`, not
 even a draft "for the user to edit". Composing the recall trigger is itself an encoding
@@ -40,10 +40,10 @@ rung, interval, next_due, status = ladder.advance(rung, interval, grade, today)
 
 ## Modes
 
-- `/review` — serve one card.
-- `/review add <subject> <topic>` — create a card.
-- `/review init` — scaffold this repo.
-- `/review requeue` — rebuild the queue file.
+- `/drill` — serve one card.
+- `/drill add <subject> <topic>` — create a card.
+- `/drill init` — scaffold this repo.
+- `/drill requeue` — rebuild the queue file.
 
 ## Mode: session
 
@@ -185,7 +185,7 @@ skipping it silently — a dropped card is a card that stops being reviewed.
 
 - Never show overdue counts, day-gaps, streaks, or missed days. The cooling dashboard in
   the queue file is the one place day-counts belong.
-- One card per invocation. No "want to do another?" — the user types `/review` again.
+- One card per invocation. No "want to do another?" — the user types `/drill` again.
 - Partial sessions are normal. No apology, no comment.
 - A failed card is the system finding a weak spot before an exam does. One honest
   sentence, no pep talk.

@@ -30,8 +30,11 @@ pass. Get it wrong and it drops back to `recall` and returns tomorrow.
 Then, in the repo holding your notes:
 
 ```
-/review init
+/drill init
 ```
+
+The command is `/drill`, not `/review` — Claude Code ships a built-in `/review` for
+GitHub pull requests, and a plugin cannot shadow a built-in.
 
 That writes `spacedeck.toml`, creates the cards directory, and generates an empty queue.
 Nothing else in your repo is touched.
@@ -39,7 +42,7 @@ Nothing else in your repo is touched.
 ## A first card
 
 ```
-/review add probability "Central limit theorem"
+/drill add probability "Central limit theorem"
 ```
 
 This creates `reviews/probability/central-limit-theorem.md` with the frontmatter filled
@@ -74,10 +77,10 @@ $\bar X_n$ is Cauchy for every $n$ and no normalization rescues it.
 ## Reviewing
 
 ```
-/review
+/drill
 ```
 
-You get a picker of what's due, choose one card, and that's the session. Type `/review`
+You get a picker of what's due, choose one card, and that's the session. Type `/drill`
 again for the next one. Nothing tracks "how many you've done today"; a graded card simply
 leaves the due set, and when the set is empty you're told so in one line.
 

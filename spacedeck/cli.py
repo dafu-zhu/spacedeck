@@ -1,6 +1,6 @@
 """Command line for the mechanical parts of spacedeck.
 
-Everything a script or scheduler needs lives here. Grading stays in the `/review`
+Everything a script or scheduler needs lives here. Grading stays in the `/drill`
 skill, because grading is a conversation and a CLI is a poor place to have one.
 """
 
@@ -51,7 +51,7 @@ def cmd_init(args):
     print(f"created  {rel(cfg.cards_dir)}/")
     print(f"created  {rel(cfg.cards_dir / mint.TEMPLATE_NAME)}  (edit to reshape cards)")
     print(f"created  {rel(cfg.queue_file)}")
-    print("\nAdd your first card with:  /review add <subject> \"<topic>\"")
+    print("\nAdd your first card with:  /drill add <subject> \"<topic>\"")
     return 0
 
 
