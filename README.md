@@ -34,18 +34,14 @@ Then, in the repo holding your notes:
 /drill init
 ```
 
-The command is `/drill`, not `/review`, because Claude Code ships a built-in `/review`
-for GitHub pull requests and a plugin cannot shadow a built-in.
-
 That writes `spacedeck.toml`, creates `spacedeck/` for your cards, and generates an empty
 `spacedeck/QUEUE.md`. Nothing else in your repo is touched.
 
-Everything goes under one namespaced directory rather than a generic `reviews/` and
-`REVIEW.md`, because those are names your repo may already mean something by. If any of
-the three paths already exists, `init` names it, refuses, and writes nothing at all. It
-will not adopt a directory you were using for something else, and it will not overwrite
-a file you wrote. Point `cards_dir` and `queue_file` wherever you like; only the defaults
-changed.
+Everything lives under one directory named after the tool, so it will not land on a name
+your repo already means something by. If any of the three paths already exists, `init`
+names it, refuses, and writes nothing at all. It will not adopt a directory you were using
+for something else, and it will not overwrite a file you wrote. Point `cards_dir` and
+`queue_file` somewhere else if those names don't suit you.
 
 ## Commands
 
@@ -142,8 +138,8 @@ again for the next one. Nothing tracks "how many you've done today"; a graded ca
 leaves the due set, and when the set is empty you're told so in one line.
 
 Cards render in a browser tab that updates itself: the prompt first, then the answer once
-you've committed to a response. Markdown becomes Markdown, so a payoff table is a table
-and not a row of pipes, and math is typeset by MathJax, which is vendored so sessions work
+you've committed to a response. Card bodies render as Markdown, so a payoff table comes
+out as a table, and math is typeset by MathJax, which is vendored so sessions work
 offline. The two never collide: math spans are lifted out before the Markdown pass, so a
 `|` inside `\left|` doesn't open a table cell and an `_` inside `S_t` doesn't open italics.
 
@@ -174,8 +170,7 @@ and each card accumulates its own record of how that derivation has gone.
 
 The path is relative on purpose. It resolves against the runtime root on whichever machine
 opens the card, so a deck synced between machines carries no username, drive letter, or
-path separator with it. Cards written before this field existed still resolve, from their
-own name.
+path separator with it.
 
 Photographs live beside the rest of the runtime state, outside your repo, so `spacedeck
 publish` never pushes an image to your state branch.
