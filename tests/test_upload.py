@@ -118,10 +118,22 @@ def test_newest_since_ignores_earlier_files(repo):
     assert upload.newest_since(repo, later) is None
 
 
-def test_urls_include_hostname_and_token(repo):
+def test_urls_all_carry_the_port_and_token(repo):
     out = upload.urls(repo, 8765)
-    assert any(":8765/?t=" in u for u in out)
+    assert out
+    assert all(":8765/?t=" in u for u in out)
     assert all(upload.get_token(repo) in u for u in out)
+
+
+def test_urls_lead_with_the_raw_address(repo):
+    """The address is the one that always works; names may not resolve on a phone."""
+    first = upload.urls(repo, 8765)[0]
+    host = first.split("//")[1].split(":")[0]
+    assert all(part.isdigit() for part in host.split("."))
+
+
+def test_urls_offer_an_mdns_name(repo):
+    assert any(".local:" in u for u in upload.urls(repo, 8765))
 
 
 def test_is_running_detects_a_live_server(server):

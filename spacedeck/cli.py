@@ -92,9 +92,12 @@ def cmd_serve(args):
         for url in upload.urls(cfg.root, port):
             print("  " + url)
         return 0
-    print("bookmark one of these on your phone:")
-    for url in upload.urls(cfg.root, port):
-        print("  " + url)
+    labels = ["address (always works, changes on a new lease)",
+              "mDNS name (survives a new lease; most phones resolve it)",
+              "hostname (NetBIOS; usually only other desktops)"]
+    print("bookmark the first that loads on your phone:")
+    for url, label in zip(upload.urls(cfg.root, port), labels):
+        print(f"  {url}\n      {label}")
     print(f"inbox: {paths.inbox(cfg.root)}")
     print(f"(stops itself after {upload.IDLE_TIMEOUT // 60} minutes idle)")
     upload.serve(cfg.root, port)

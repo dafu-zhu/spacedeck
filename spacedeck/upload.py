@@ -80,10 +80,19 @@ def _lan_ip():
 
 
 def urls(repo_root, port=DEFAULT_PORT):
+    """Bookmark candidates, most-likely-to-work first.
+
+    The raw address always works on the LAN but changes when the router reassigns
+    it. `<host>.local` is mDNS, which phones usually resolve and which survives a
+    new lease. The bare hostname relies on NetBIOS and is listed last because most
+    phones don't speak it.
+    """
     token = get_token(repo_root)
+    host = socket.gethostname().lower()
     return [
-        f"http://{socket.gethostname().lower()}:{port}/?t={token}",
         f"http://{_lan_ip()}:{port}/?t={token}",
+        f"http://{host}.local:{port}/?t={token}",
+        f"http://{host}:{port}/?t={token}",
     ]
 
 
