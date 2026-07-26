@@ -191,12 +191,14 @@ def cmd_add(args):
         cfg.cards_dir, args.subject, args.topic, datetime.date.today(),
         tier=args.tier, source=args.source,
     )
+    c = card.read(path)
     if args.rung != "recall":
-        c = card.read(path)
         c.fields["rung"] = args.rung
         card.write(c)
     queue.rebuild(cfg.cards_dir, cfg.queue_file, datetime.date.today(), cfg.tiers)
     print(path)
+    # stdout stays exactly the card path, which callers parse; the folder is a note.
+    print(f"work     {paths.card_work(cfg.root, mint.work_rel_of(c))}", file=sys.stderr)
     return 0
 
 

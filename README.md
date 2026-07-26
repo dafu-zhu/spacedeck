@@ -97,6 +97,28 @@ For `derive` cards you work on paper and photograph it. `spacedeck serve` runs a
 upload page on your own network: bookmark it on your phone's home screen, tap, shoot,
 and the image lands on your machine with no cloud account anywhere in the path.
 
+## Where your work goes
+
+Every card owns a folder. `spacedeck add` creates it and records it in the card:
+
+```yaml
+work: probability/ito-isometry
+```
+
+The photo waits in a shared inbox while you're being tested — it doesn't belong to a card
+until it has been checked against one — and filing happens at grading. It moves into that
+folder under the date: `2026-07-25.jpg`, then `2026-07-25-2.jpg` for a second attempt the
+same day, numbered rather than overwritten. So the inbox stays a queue, and each card
+accumulates its own record of how that derivation has gone.
+
+The path is relative on purpose. It resolves against the runtime root on whichever machine
+opens the card, so a deck synced between machines carries no username, drive letter, or
+path separator with it. Cards written before this field existed still resolve, from their
+subject and topic.
+
+Photographs live beside the rest of the runtime state, outside your repo, so `spacedeck
+publish` never pushes an image to your state branch.
+
 ## Grading
 
 Four grades, the same vocabulary most spaced-repetition tools use:

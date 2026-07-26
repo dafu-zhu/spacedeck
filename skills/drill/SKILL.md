@@ -11,6 +11,11 @@ configured `cards_dir`; the engine is the `spacedeck` package shipped with this 
 **Source of truth is card frontmatter.** The queue file is generated and must never be
 hand-edited. If they disagree, the cards win — run `/drill requeue`.
 
+**`work:` is relative, always.** It names a card's photo folder beneath the local runtime
+root, and it travels with the card to other machines. Never write an absolute path, a home
+directory, or a backslash into it. Resolve it with `paths.card_work(cfg.root, rel)`; a card
+minted before the field existed still answers through `mint.work_rel_of(c)`.
+
 **Never write card body content.** Not `## Prompt`, not `## Answer`, not `## Notes`, not
 even a draft "for the user to edit". Composing the recall trigger is itself an encoding
 pass, and the user knows which step tripped them up. Ask, wait, and format only what they
@@ -92,6 +97,13 @@ Then wait for the user to type `done`, call
 `upload.newest_since(cfg.root, served_at)`, and read the image. If nothing newer is
 there, ask — never assume they meant to skip it.
 
+The shot stays in the shared inbox for now. It only belongs to a card once it has been
+checked against one, which happens at grading.
+
+Earlier attempts at the same card are `upload.filed_shots(cfg.root, mint.work_rel_of(c))`,
+oldest first. Read one only when the user asks to compare — an unrequested "last time you
+also missed this" is the day-counting this skill doesn't do.
+
 ### 3. Reveal and grade
 
 Re-render with the answer appended, so the page shows prompt and answer together. This is
@@ -123,6 +135,17 @@ Append `{date, grade}` to `history`, write the card, then `spacedeck requeue`, t
 `spacedeck publish -m "review: <subject> <topic> <grade>"`. Relay the publish result in
 the closing line whenever it is not `pushed` — an offline session must say the push was
 skipped rather than imply the state reached the branch.
+
+For a `derive` card, file the photograph against the card it was taken for:
+
+```python
+upload.file_shot(cfg.root, mint.work_rel_of(c), shot, today)
+```
+
+That moves it out of the shared inbox into the card's own folder under a date-stamped
+name, so the inbox stays a queue rather than an archive and each card keeps its own record
+of how the derivation went. A second attempt on the same day is numbered, never
+overwritten. File it whatever the grade — a failed attempt is the more useful one to keep.
 
 Then delete the page — always, including when the user abandons the card mid-way:
 
@@ -197,6 +220,9 @@ $\bar X_n$ is Cauchy for every $n$ and no normalization rescues it.
 
 Run `spacedeck add <subject> <topic> --rung <recall|derive>`. Ask which rung if the user
 didn't say. Print the path and stop — no interview, no drafted content.
+
+The card is minted with a `work:` folder, which is created at the same time. That is
+where photographed attempts get filed.
 
 ## Mode: init
 

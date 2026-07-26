@@ -10,7 +10,7 @@ import datetime
 import pathlib
 import re
 
-FIELD_ORDER = ["subject", "topic", "tier", "rung", "interval", "next_due", "status"]
+FIELD_ORDER = ["subject", "topic", "tier", "rung", "interval", "next_due", "status", "work"]
 TRAILING_ORDER = ["source"]
 
 _FIELD_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$")

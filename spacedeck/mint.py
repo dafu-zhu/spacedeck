@@ -26,6 +26,22 @@ def slugify(topic):
     return re.sub(r"[^a-z0-9]+", "-", ascii_only.lower()).strip("-")
 
 
+def work_rel(subject, topic):
+    """A card's photo folder, as a POSIX path relative to the local work root.
+
+    Deliberately relative and slash-separated: this string is written into the
+    card and travels with it, so it must not carry a drive letter, a home
+    directory, a repo slug, or a backslash. Each machine resolves it against its
+    own `paths.work`.
+    """
+    return f"{slugify(subject)}/{slugify(topic)}"
+
+
+def work_rel_of(c):
+    """The `work:` field, or where it would point for a card minted before it existed."""
+    return c.fields.get("work") or work_rel(c.fields["subject"], c.fields["topic"])
+
+
 def template_path(cards_dir):
     """The repo's own skeleton if it has one, else the shipped default."""
     local = pathlib.Path(cards_dir) / TEMPLATE_NAME
@@ -54,6 +70,7 @@ def create(cards_dir, subject, topic, today, tier="P0", source=""):
             "interval": "1",
             "next_due": (today + datetime.timedelta(days=1)).isoformat(),
             "status": "active",
+            "work": work_rel(subject, topic),
             "source": source,
         },
         history=[{"date": today.isoformat(), "grade": "seed"}],
