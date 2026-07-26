@@ -19,23 +19,34 @@ def test_slugify_transliterates_accents_and_drops_symbols():
     assert mint.slugify("Itô's isometry!") == "ito-s-isometry"
 
 
-def test_work_rel_is_subject_over_topic_slug():
-    assert mint.work_rel("probability", "Ito isometry") == "probability/ito-isometry"
+def test_work_rel_is_the_card_name():
+    assert mint.work_rel("Ito isometry") == "ito-isometry"
 
 
-def test_work_rel_carries_nothing_machine_specific():
+def test_work_rel_is_flat_and_carries_nothing_machine_specific():
     """This string is written into a card and travels with it to other machines."""
-    rel = mint.work_rel("Real Analysis", "Dominated convergence")
-    assert rel == "real-analysis/dominated-convergence"
-    assert "\\" not in rel
-    assert not rel.startswith("/")
+    rel = mint.work_rel("Dominated convergence")
+    assert rel == "dominated-convergence"
+    assert "/" not in rel and "\\" not in rel  # one folder, not a path
     assert ":" not in rel  # no drive letter
     assert "~" not in rel
 
 
+def test_a_name_already_taken_gets_a_suffix():
+    assert mint.work_rel("Convergence", taken={"convergence"}) == "convergence-2"
+    assert mint.work_rel("Convergence", taken={"convergence", "convergence-2"}) == "convergence-3"
+
+
 def test_a_new_card_records_its_work_folder(tmp_path):
     c = card.read(mint.create(tmp_path, "probability", "Ito isometry", TODAY))
-    assert c.fields["work"] == "probability/ito-isometry"
+    assert c.fields["work"] == "ito-isometry"
+
+
+def test_two_subjects_with_the_same_topic_never_share_a_folder(tmp_path):
+    a = card.read(mint.create(tmp_path, "probability", "Convergence", TODAY))
+    b = card.read(mint.create(tmp_path, "analysis", "Convergence", TODAY))
+    assert a.fields["work"] == "convergence"
+    assert b.fields["work"] == "convergence-2"
 
 
 def test_work_rel_of_falls_back_for_a_card_minted_before_the_field(tmp_path):
@@ -43,13 +54,13 @@ def test_work_rel_of_falls_back_for_a_card_minted_before_the_field(tmp_path):
     c = card.read(path)
     del c.fields["work"]
     card.write(c)
-    assert mint.work_rel_of(card.read(path)) == "probability/ito-isometry"
+    assert mint.work_rel_of(card.read(path)) == "ito-isometry"
 
 
 def test_work_rel_of_prefers_what_the_card_says(tmp_path):
     c = card.read(mint.create(tmp_path, "probability", "Ito isometry", TODAY))
-    c.fields["work"] = "somewhere/else"
-    assert mint.work_rel_of(c) == "somewhere/else"
+    c.fields["work"] = "somewhere-else"
+    assert mint.work_rel_of(c) == "somewhere-else"
 
 
 def test_create_writes_to_subject_folder(tmp_path):
