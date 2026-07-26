@@ -4,19 +4,20 @@ Spaced review over your own course notes, as a Claude Code plugin.
 
 You write the cards. `spacedeck` decides what to show you and when, tests you on it,
 and moves the schedule based on how it went. Cards are plain Markdown files in your
-repo — no database, no proprietary format, no sync service.
+repo, with no database, no proprietary format, and no sync service.
 
 ## Why another spaced-repetition tool
 
 Most flashcard software optimises for cards you can answer in five seconds. That works
 for vocabulary and fails for anything you have to *derive*. A card that asks you to
-reproduce a proof needs paper, a way to check the result, and an honest grade — none of
-which fit a tap-to-reveal loop on a phone.
+reproduce a proof needs paper, a way to check the result, and an honest grade. None of
+that fits a tap-to-reveal loop on a phone.
 
 spacedeck is built around two rungs instead:
 
-- **recall** — state the definition, the result, the hypotheses. Typed, ~20 seconds.
-- **derive** — reproduce the derivation on paper. Photographed and checked.
+- `recall`: state the definition, the result, the hypotheses. You type it, in about
+  twenty seconds.
+- `derive`: reproduce the derivation on paper, then photograph it so it can be checked.
 
 A card climbs from `recall` to `derive`, and the interval grows only when you actually
 pass. Get it wrong and it drops back to `recall` and returns tomorrow.
@@ -33,17 +34,67 @@ Then, in the repo holding your notes:
 /drill init
 ```
 
-The command is `/drill`, not `/review` — Claude Code ships a built-in `/review` for
-GitHub pull requests, and a plugin cannot shadow a built-in.
+The command is `/drill`, not `/review`, because Claude Code ships a built-in `/review`
+for GitHub pull requests and a plugin cannot shadow a built-in.
 
 That writes `spacedeck.toml`, creates `spacedeck/` for your cards, and generates an empty
 `spacedeck/QUEUE.md`. Nothing else in your repo is touched.
 
 Everything goes under one namespaced directory rather than a generic `reviews/` and
 `REVIEW.md`, because those are names your repo may already mean something by. If any of
-the three paths already exists, `init` names it, refuses, and writes nothing at all — it
-will not adopt a directory you were using for something else or overwrite a file you
-wrote. Point `cards_dir` and `queue_file` wherever you like; only the defaults change.
+the three paths already exists, `init` names it, refuses, and writes nothing at all. It
+will not adopt a directory you were using for something else, and it will not overwrite
+a file you wrote. Point `cards_dir` and `queue_file` wherever you like; only the defaults
+changed.
+
+## Commands
+
+spacedeck has two surfaces. The `/drill` skill runs review sessions inside Claude Code,
+because grading is a conversation. The `spacedeck` CLI covers the mechanical parts and
+runs without a model, so cron jobs and planners can call it directly.
+
+### The /drill skill
+
+| command | what it does |
+|---|---|
+| `/drill` | Serves one due card, tests you, grades it, moves the schedule |
+| `/drill add <subject> <topic>` | Creates an empty card and prints its path |
+| `/drill init` | Sets up the repo you are currently in |
+| `/drill requeue` | Rebuilds the queue file from your cards |
+
+Adding a card takes a subject and then a topic. Quote the topic when it contains spaces:
+
+```
+/drill add probability "Central limit theorem"
+/drill add analysis "Dominated convergence"
+```
+
+The subject becomes the folder, the topic becomes the filename. So the first line writes
+`spacedeck/probability/central-limit-theorem.md` and leaves the body for you.
+
+`/drill` on its own starts a session. You get a picker of up to four due cards, you choose
+one, and that is the session. Run it again for the next card.
+
+### The spacedeck CLI
+
+| command | what it does |
+|---|---|
+| `spacedeck init [path]` | Scaffolds the config, cards directory and queue. Defaults to the current directory |
+| `spacedeck add <subject> <topic>` | Creates a card and prints its path |
+| `spacedeck due [--json]` | Reports what is due. Use `--json` for schedulers |
+| `spacedeck requeue` | Regenerates the queue file from card frontmatter |
+| `spacedeck serve [--port N] [--detach]` | Runs the phone upload page for `derive` cards |
+| `spacedeck setup [--force]` | Vendors the MathJax bundle so math typesets offline |
+| `spacedeck publish [-m MSG]` | Pushes card state to the state branch |
+
+`spacedeck add` takes three optional flags: `--rung`, which is `recall` or `derive` and
+defaults to `recall`; `--tier`, which defaults to `P0` and breaks ties when several cards
+fall due together; and `--source`, a free-text reference back to the notes the card came
+from.
+
+The skill runs `publish` for you after every grade and starts `serve` when a `derive` card
+needs a photo. Run `setup` yourself once per machine. Until you do, cards still render,
+but the math shows as raw LaTeX rather than typeset.
 
 ## A first card
 
@@ -52,9 +103,9 @@ wrote. Point `cards_dir` and `queue_file` wherever you like; only the defaults c
 ```
 
 This creates `spacedeck/probability/central-limit-theorem.md` with the frontmatter filled
-in and the body left empty, then prints the path. **You** write the encoding — composing
-the recall trigger is itself a learning pass, and you know which step tripped you up,
-which your lecture notes do not record.
+in and the body left empty, then prints the path. You write the encoding yourself.
+Composing the recall trigger is itself a learning pass, and you know which step tripped
+you up, which your lecture notes do not record.
 
 ```markdown
 ## Prompt
@@ -69,7 +120,7 @@ $0 < \mathrm{Var}(X) = \sigma^2 < \infty$. Then
 
 $$\sqrt{n}\,(\bar X_n - \mu)/\sigma \rightsquigarrow N(0,1) \quad \text{(in distribution).}$$
 
-Finite second moment is the entire hypothesis — nothing higher, and no density or
+Finite second moment is the entire hypothesis. Nothing higher, and no density or
 continuity assumption anywhere.
 
 ## Notes
@@ -78,7 +129,7 @@ Convergence in distribution only. Dies when $\sigma^2 = \infty$: for Cauchy,
 $\bar X_n$ is Cauchy for every $n$ and no normalization rescues it.
 ```
 
-`## Notes` is optional — use it for the trap, and leave it out when there isn't one.
+`## Notes` is optional. Use it for the trap, and leave it out when there isn't one.
 
 ## Reviewing
 
@@ -90,7 +141,7 @@ You get a picker of what's due, choose one card, and that's the session. Type `/
 again for the next one. Nothing tracks "how many you've done today"; a graded card simply
 leaves the due set, and when the set is empty you're told so in one line.
 
-Cards render in a browser tab that updates itself — the prompt first, then the answer once
+Cards render in a browser tab that updates itself: the prompt first, then the answer once
 you've committed to a response. Markdown becomes Markdown, so a payoff table is a table
 and not a row of pipes, and math is typeset by MathJax, which is vendored so sessions work
 offline. The two never collide: math spans are lifted out before the Markdown pass, so a
@@ -112,19 +163,19 @@ in the card, so `ito-isometry.md` gets:
 work: ito-isometry
 ```
 
-Two subjects can hold a card of the same name, and they must not share a folder — the
+Two subjects can hold a card of the same name, and they must not share a folder, so the
 second one registered becomes `ito-isometry-2`. The card records whichever name it got.
 
-The photo waits in a shared inbox while you're being tested — it doesn't belong to a card
-until it has been checked against one — and filing happens at grading. It moves into that
-folder under the date: `2026-07-25.jpg`, then `2026-07-25-2.jpg` for a second attempt the
-same day, numbered rather than overwritten. So the inbox stays a queue, and each card
-accumulates its own record of how that derivation has gone.
+The photo waits in a shared inbox while you're being tested, since it doesn't belong to a
+card until it has been checked against one. Filing happens at grading, when the photo
+moves into that folder under the date: `2026-07-25.jpg`, then `2026-07-25-2.jpg` for a
+second attempt the same day, numbered rather than overwritten. So the inbox stays a queue,
+and each card accumulates its own record of how that derivation has gone.
 
 The path is relative on purpose. It resolves against the runtime root on whichever machine
 opens the card, so a deck synced between machines carries no username, drive letter, or
 path separator with it. Cards written before this field existed still resolve, from their
-subject and topic.
+own name.
 
 Photographs live beside the rest of the runtime state, outside your repo, so `spacedeck
 publish` never pushes an image to your state branch.
@@ -143,7 +194,7 @@ Four grades, the same vocabulary most spaced-repetition tools use:
 The ladder is `1 → 3 → 7 → 16 → 35` days. A card that reaches 35 days at `derive` and is
 graded `good` or `easy` retires.
 
-Asking for a hint caps that card at `again` — the memory wasn't there unaided, and
+Asking for a hint caps that card at `again`. The memory wasn't there unaided, and
 recording otherwise just corrupts your own schedule.
 
 ## Scheduling
@@ -175,21 +226,10 @@ state_branch = "main"
 tiers = ["P0", "P1", "P2"]
 ```
 
-## CLI
-
-Everything mechanical is scriptable without a model. Grading stays in the skill, because
-grading is a conversation.
-
-| command | does |
-|---|---|
-| `spacedeck init` | scaffold config, cards directory, queue |
-| `spacedeck due [--json]` | what's due, for schedulers |
-| `spacedeck requeue` | regenerate the queue from card frontmatter |
-| `spacedeck serve` | run the photo upload endpoint |
-
 ## Requirements
 
-Python 3.13+. No runtime dependencies — standard library only.
+Python 3.13 or newer. The package uses only the standard library and has no runtime
+dependencies.
 
 ## License
 
