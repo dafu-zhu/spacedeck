@@ -76,3 +76,71 @@ def test_two_repos_render_to_separate_pages(tmp_path):
     a.mkdir()
     b.mkdir()
     assert render.write(a, "P", [("P", "x")]) != render.write(b, "P", [("P", "y")])
+
+
+# --- markdown ---------------------------------------------------------------
+
+def test_page_renders_markdown_tables(repo):
+    html = render.page(repo, "Answer", [("Answer", "| a | b |\n|---|---|\n| 1 | 2 |")])
+    assert "<table>" in html
+    assert "|---|" not in html
+
+
+def test_page_renders_emphasis(repo):
+    html = render.page(repo, "Answer", [("Answer", "**Case A** — buy it")])
+    assert "<strong>Case A</strong>" in html
+    assert "**Case A**" not in html
+
+
+def test_page_keeps_math_beside_rendered_markdown(repo):
+    html = render.page(repo, "Answer", [("Answer", "**net** $F_t - S_t > 0$")])
+    assert "<strong>net</strong>" in html
+    assert "$F_t - S_t &gt; 0$" in html
+
+
+def test_a_broken_markdown_pass_still_renders_the_card(repo, monkeypatch):
+    def explode(_):
+        raise RuntimeError("bad pattern")
+
+    monkeypatch.setattr(render.markdown, "to_html", explode)
+    html = render.page(repo, "Answer", [("Answer", "the answer text")])
+    assert "the answer text" in html
+
+
+# --- lifecycle --------------------------------------------------------------
+
+def test_the_reveal_can_stop_the_refresh(repo):
+    html = render.page(repo, "Reveal", [("Answer", "x")], refresh=False)
+    assert "http-equiv" not in html
+
+
+def test_write_passes_the_refresh_choice_through(repo):
+    target = render.write(repo, "Reveal", [("Answer", "x")], refresh=False)
+    assert "http-equiv" not in target.read_text(encoding="utf-8")
+
+
+def test_clear_deletes_the_page(repo):
+    target = render.write(repo, "Prompt", [("Prompt", "x")])
+    assert render.clear(repo) is True
+    assert not target.exists()
+
+
+def test_clear_is_quiet_when_there_is_nothing_to_clear(repo):
+    assert render.clear(repo) is False
+
+
+def test_clear_leaves_the_other_runtime_files_alone(repo):
+    paths.mathjax(repo).write_text("// bundle", encoding="utf-8")
+    render.write(repo, "Prompt", [("Prompt", "x")])
+    render.clear(repo)
+    assert paths.mathjax(repo).is_file()
+
+
+def test_clear_touches_only_this_repo(tmp_path):
+    a, b = tmp_path / "a", tmp_path / "b"
+    a.mkdir()
+    b.mkdir()
+    render.write(a, "P", [("P", "x")])
+    kept = render.write(b, "P", [("P", "y")])
+    render.clear(a)
+    assert kept.exists()
