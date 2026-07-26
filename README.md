@@ -36,8 +36,14 @@ Then, in the repo holding your notes:
 The command is `/drill`, not `/review` — Claude Code ships a built-in `/review` for
 GitHub pull requests, and a plugin cannot shadow a built-in.
 
-That writes `spacedeck.toml`, creates the cards directory, and generates an empty queue.
-Nothing else in your repo is touched.
+That writes `spacedeck.toml`, creates `spacedeck/` for your cards, and generates an empty
+`spacedeck/QUEUE.md`. Nothing else in your repo is touched.
+
+Everything goes under one namespaced directory rather than a generic `reviews/` and
+`REVIEW.md`, because those are names your repo may already mean something by. If any of
+the three paths already exists, `init` names it, refuses, and writes nothing at all — it
+will not adopt a directory you were using for something else or overwrite a file you
+wrote. Point `cards_dir` and `queue_file` wherever you like; only the defaults change.
 
 ## A first card
 
@@ -45,7 +51,7 @@ Nothing else in your repo is touched.
 /drill add probability "Central limit theorem"
 ```
 
-This creates `reviews/probability/central-limit-theorem.md` with the frontmatter filled
+This creates `spacedeck/probability/central-limit-theorem.md` with the frontmatter filled
 in and the body left empty, then prints the path. **You** write the encoding — composing
 the recall trigger is itself a learning pass, and you know which step tripped you up,
 which your lecture notes do not record.
@@ -159,8 +165,8 @@ an LLM planner.
 
 ```toml
 [spacedeck]
-cards_dir = "reviews"
-queue_file = "REVIEW.md"
+cards_dir = "spacedeck"
+queue_file = "spacedeck/QUEUE.md"
 ladder = [1, 3, 7, 16, 35]
 max_cards_per_day = 8
 daily_minutes = 15

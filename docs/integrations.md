@@ -117,7 +117,7 @@ uv tool install git+https://github.com/dafu-zhu/spacedeck
 
 ## What not to build on
 
-`REVIEW.md` is a **generated view**. It is rewritten whole on every session, its layout
+The queue file is a **generated view**. It is rewritten whole on every session, its layout
 changes between versions, and hand-edits are lost. Read `spacedeck due --json` instead.
 
 Card frontmatter is stable and safe to read directly if you need something the CLI does
